@@ -947,7 +947,7 @@ the value of the last form in TIMEOUT-FORMS."
   (not (memq (process-status proc) '(nil closed exit failed signal))))
 
 (defun twittering-start-process-with-sentinel (name buffer program args sentinel)
-  "Start a program in a subprocess with a sentinel.
+  "Start a subprocess NAME in BUFFER running PROGRAM with ARGS with a sentinel.
 
 This function is the same as `start-process' except that SENTINEL must
 be invoked when the process is successfully started."
