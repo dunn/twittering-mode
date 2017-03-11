@@ -112,7 +112,7 @@
   (interactive)
   (let ((version-string
 	 (format "twittering-mode-v%s" twittering-mode-version)))
-    (if (interactive-p)
+    (if (called-interactively-p)
 	(message "%s" version-string)
       version-string)))
 
