@@ -13,10 +13,6 @@
   (test-assert-string-match "^twittering-mode-v\\([0-9]+\\(\\.[0-9]+\\)*\\|HEAD\\)"
     (twittering-mode-version)))
 
-(defcase test-assocref nil nil
-  (test-assert-eq 'bar (assocref 'foo '((baz . qux) (foo . bar))))
-  (test-assert-eq nil (assocref 'quxx '((baz . qux) (foo . bar)))))
-
 (defmacro test-setup-proxy(bindings)
   `(let ,(append '((process-environment nil)
 		   (twittering-proxy-use t)
@@ -125,24 +121,24 @@
 
 (defcase case-string nil nil
   (test-assert-string-equal "Kobayakawa"
-    (case-string "Rinko"
+    (twittering-case-string "Rinko"
       (("Rinko") "Kobayakawa")
       (t "unknown")))
 
   (test-assert-string-equal "unknown"
-    (case-string "Manaka"
+    (twittering-case-string "Manaka"
       (("Rinko") "Kobayakawa")
       (t "unknown")))
 
   (test-assert-string-equal "Kobayakawa"
-    (case-string "Rinko"
+    (twittering-case-string "Rinko"
       (("Manaka") "Takane")
       (("Rinko") "Kobayakawa")
       (("Nene") "Anegasaki")
       (t nil)))
 
   (test-assert-string-equal "Amphibian"
-    (case-string "Frog"
+    (twittering-case-string "Frog"
       (("Rabbit") "Mammal")
       (("Salamandar" "Frog") "Amphibian")
       (t nil)))
