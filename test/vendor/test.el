@@ -2,6 +2,7 @@
 ;; Copyright (C) 2008 by Wang Liang
 
 ;; Author: Wang Liang <netcasper@gmail.com>
+;; Contributor: Yuto Hayamizu <y.hayamizu@gmail.com>
 
 ;; test.el is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -31,19 +32,19 @@
 ;; Overview
 ;;   This unit test framework is developed for testing operations on a buffer.
 ;;   But it definitely can be used to test operations unrelated to buffers.
-;;   
+;;
 ;;   For example, I write `my-buffer-substring'.  I also have a file and if it
 ;;   is loaded into a buffer and run (my-buffer-substring 10 22) on that buffer,
 ;;   it must return "hello, world".  To test it, I can write a test case with
 ;;   this framework,
-;;   
+;;
 ;;     (defun my-buffer-substring-setup ()
 ;;       (insert-file-contents "my-file"))
-;;   
+;;
 ;;     (defcase my-buffer-substring-test nil 'my-buffer-substring-setup
 ;;       (test-assert-string-equal (my-buffer-substring 10 22) "hello, world"))
-;;   
-;;   And then run it by invoking 
+;;
+;;   And then run it by invoking
 ;;   `M-x test-run-one-case MY-BUFFER-SUBSTRING-TEST'.
 ;;
 ;;   http://www.wanglianghome.org/svn/test/example.el is an example of usage.
@@ -79,13 +80,13 @@
 ;;   your own assertion function, you should use `assert' from `cl' package to
 ;;   do real job.
 ;;
-;;   Test cases can be grouped with tags so that you can run them with one 
+;;   Test cases can be grouped with tags so that you can run them with one
 ;;   command.  To add tags to the previous test case,
 ;;
 ;;     (defcase my-code-test (my-lib-suite my-lib-sublib-suite) nil
 ;;       (test-assert-ok (my-fun)))
 ;;
-;;   All test cases are run in a temporary buffer.  You can setup buffer 
+;;   All test cases are run in a temporary buffer.  You can setup buffer
 ;;   content by providing `setup' code.  For example,
 ;;
 ;;     (defun my-lib-setup ()
@@ -128,7 +129,7 @@
 
 (require 'cl)
 
-(defconst test-version "0.9"
+(defconst test-version "0.9.1"
   "test version")
 
 (defun test-version ()
@@ -209,40 +210,40 @@ expressions"
     (mapcar
      (lambda (arg)
        (cond ((not (listp arg))
-	      arg)
-	     ((not (test-assert-p arg))
-	      (let ((arg (cond
-			  ((listp arg)
-			   (test-transform-body arg fail succ err t))
-			  (t arg))))
-		(if not-toplevel
-		    arg
-		  `(condition-case ,err
-		       ;; do not count as success
-		       ,arg
-		     (error (incf ,fail) ; but count as failure
-			    (test-report-error ',arg ,err))))))
-	     ((test-special-assert-p arg)
-	      `(condition-case ,err
-		   (progn
-		     ,arg
-		     (incf ,succ))
-		 (error (incf ,fail)
-			(test-report-error ',arg ,err))))
-	     (t
-	      `(condition-case ,err
-		   (progn
-		     (test-assert-binary-relation
-			 ;; function to test binary relation
-			 ',(intern
-			    (substring
-			     (symbol-name (car arg))
-			     (length test-assert-method-prefix)))
-		       ;; parameters to above function
-		       ,@(cdr arg))
-		     (incf ,succ))
-		 (error (incf ,fail)
-			(test-report-error ',arg ,err))))))
+             arg)
+            ((not (test-assert-p arg))
+             (let ((arg (cond
+                         ((listp arg)
+                          (test-transform-body arg fail succ err t))
+                         (t arg))))
+               (if not-toplevel
+                   arg
+                 `(condition-case ,err
+                      ;; do not count as success
+                      ,arg
+                    (error (incf ,fail) ; but count as failure
+                           (test-report-error ',arg ,err))))))
+            ((test-special-assert-p arg)
+             `(condition-case ,err
+                  (progn
+                    ,arg
+                    (incf ,succ))
+                (error (incf ,fail)
+                       (test-report-error ',arg ,err))))
+            (t
+             `(condition-case ,err
+                  (progn
+                    (test-assert-binary-relation
+                        ;; function to test binary relation
+                        ',(intern
+                           (substring
+                            (symbol-name (car arg))
+                            (length test-assert-method-prefix)))
+                      ;; parameters to above function
+                      ,@(cdr arg))
+                    (incf ,succ))
+                (error (incf ,fail)
+                       (test-report-error ',arg ,err))))))
      body)))
 
 (defmacro defcase (case-name tags setup &rest body)
@@ -275,9 +276,9 @@ expressions"
 			(,succ 0))
 		    (with-temp-buffer
 		      (when ,setup
-			(funcall ,setup))		
+			(funcall ,setup))
 		      ;; transform `body' of macro during expansion time.
-		      ,@(test-transform-body body fail succ err)
+                     ,@(test-transform-body body fail succ err)
 		      ;; summarize
 		      (princ (format "%s: %d pass, %d fail."
 				     (symbol-name ',case-name)
@@ -307,7 +308,6 @@ expressions"
   (dolist (case-name (test-args-to-list cases))
     (funcall (gethash case-name test-cases))))
 
-(defvar test-last-summary nil)
 (defun test-run-and-summarize (cases)
   "Run test cases in CASES and print summary."
   (let ((total-succ 0)
@@ -316,8 +316,6 @@ expressions"
       (let ((summary (funcall (gethash case-name test-cases))))
 	(incf total-succ (car summary))
 	(incf total-fail (cadr summary))))
-    (setq test-last-summary
-	  `((succ . ,total-succ) (fail . ,total-fail)))
     (princ "#  ")
     (princ (format "Total: %d pass, %d fail." total-succ total-fail))))
 
