@@ -14,7 +14,7 @@ for emacs in $(echo ${emacsen}); do
 	  continue
   fi
   $emacs -q --no-site-file --batch \
-         --load $(dirname $0)/../twittering-mode.el \
+         --directory $(dirname $0)/../ \
          --load $(dirname $0)/vendor/test.el \
          --load $(dirname $0)/el-test-runner.el
   exit_status=$?
