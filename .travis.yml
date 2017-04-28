@@ -1,0 +1,25 @@
+# Built off Sebastian Wiesner's https://github.com/flycheck/emacs-travis
+sudo: false
+
+cache:
+  - directories:
+      # Cache stable Emacs binaries (saves 1min per job)
+      - "$HOME/emacs/"
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    - env: EMACS_VERSION=snapshot
+
+env:
+  - EMACS_VERSION=24.5
+  - EMACS_VERSION=25.2
+  - EMACS_VERSION=snapshot
+
+before_install:
+  - export PATH="$HOME/bin:$PATH"
+  - wget 'https://raw.githubusercontent.com/flycheck/emacs-travis/master/emacs-travis.mk'
+  - make -f emacs-travis.mk install_emacs
+
+script:
+  - make check
