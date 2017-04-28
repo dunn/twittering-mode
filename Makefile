@@ -5,9 +5,7 @@ DISTRIB_FILES = twittering-mode.el \
 		README README.ja \
 		NEWS NEWS.ja \
 		INSTALL INSTALL.ja \
-		win-curl \
-		url-emacs21 \
-		emacs21
+		win-curl
 
 .PHONY: all check clean update-po release release-upload upload
 

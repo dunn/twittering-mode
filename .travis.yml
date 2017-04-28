@@ -12,8 +12,10 @@ matrix:
     - env: EMACS_VERSION=snapshot
 
 env:
+  # 24.1 isn't available xzipped https://github.com/flycheck/emacs-travis/pull/8
+  - EMACS_VERSION=24.2
   - EMACS_VERSION=24.5
-  - EMACS_VERSION=25.2
+  - EMACS_VERSION=25.1
   - EMACS_VERSION=snapshot
 
 before_install:

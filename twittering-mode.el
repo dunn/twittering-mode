@@ -51,7 +51,6 @@
 (require 'xml)
 (require 'twittering-utilities)
 (require 'url)
-(require 'twittering-compatibility)
 
 (defgroup twittering-mode nil
   "Settings for twittering-mode."
@@ -3788,7 +3787,7 @@ this variable specifies. The unit is second.")
 			 (and (integerp current)
 			      (< current twittering-url-request-retry-limit)))
 		 url)))
-	   (twittering-remove-duplicates queue))))
+	   (delete-dups queue))))
 
 (defun twittering-resolve-url-request ()
   "Resolve requests of asynchronous URL retrieval."
@@ -3877,7 +3876,7 @@ The retrieved data can be referred as (gethash URL twittering-url-data-hash)."
 
 (defvar twittering-unicode-replacement-char
   ;; "Unicode Character 'REPLACEMENT CHARACTER' (U+FFFD)"
-  (or (twittering-ucs-to-char-internal #xFFFD)
+  (or (mm-ucs-to-char #xFFFD)
       ??)
   "*Replacement character returned by `twittering-ucs-to-char' when it fails
 to decode a code.")
@@ -3885,7 +3884,7 @@ to decode a code.")
 (defun twittering-ucs-to-char (code-point)
   "Return a character specified by CODE-POINT in Unicode.
 If it fails to decode the code, return `twittering-unicode-replacement-char'."
-  (or (twittering-ucs-to-char-internal code-point)
+  (or (mm-ucs-to-char code-point)
       twittering-unicode-replacement-char))
 
 (defadvice decode-char (after twittering-add-fail-over-to-decode-char)
@@ -4533,7 +4532,7 @@ Return cons of the spec and the rest string."
 	  (setq rest next-rest)))
       (if (and rest (string-match "^)" rest))
 	  (let ((spec-list
-		 (twittering-remove-duplicates
+		 (delete-dups
 		  (apply 'append
 			 (mapcar (lambda (x) (if (eq 'merge (car x))
 						 (cdr x)
@@ -4663,7 +4662,7 @@ If SPEC is primary, returns a list consisting of itself.
 The result timelines are primary."
   (if (twittering-timeline-spec-primary-p spec)
       `(,spec)
-    (twittering-remove-duplicates
+    (delete-dups
      (apply 'append
 	    (mapcar 'twittering-get-primary-base-timeline-specs
 		    (twittering-get-base-timeline-specs spec))))))
@@ -4676,7 +4675,7 @@ bound to a live buffer.
 If BASE-SPEC is a composite timeline spec, the return value consists of
 composite timeline specs that depend on BASE-SPEC and are bound to a live
 buffer."
-  (twittering-remove-duplicates
+  (delete-dups
    `(;; BASE-SPEC may not be bound to a live buffer.
      ,@(when (twittering-timeline-spec-primary-p base-spec)
 	 `(,base-spec))
@@ -4966,7 +4965,7 @@ referring the former ID."
 		      (delete-region beg separator-pos)
 		      (goto-char beg))))
 		buffer))))))
-     (twittering-remove-duplicates
+     (delete-dups
       (apply 'append
 	     (mapcar
 	      (lambda (data)
@@ -5238,7 +5237,7 @@ one bound to reset-time is an Emacs time (result of `seconds-to-time')."
      (mapcar (lambda (entry)
 	       (let ((sym
 		      (cdr
-		       (twittering-assoc-string (car entry) symbol-table t))))
+		       (assoc-string (car entry) symbol-table t))))
 		 (cond
 		  ((memq sym '(limit remaining))
 		   `(,sym . ,(string-to-number (cdr entry))))
@@ -5418,7 +5417,7 @@ header of the API."
 	 (format "%s/%s"
 		 (if remaining (number-to-string remaining) "?")
 		 (if limit (number-to-string limit) "?"))))
-     (twittering-remove-duplicates
+     (delete-dups
       (mapcar (lambda (spec)
 		(cdr (assoc spec twittering-timeline-spec-to-api-table)))
 	      (twittering-get-primary-base-timeline-specs spec)))
@@ -6729,12 +6728,12 @@ If the authorization failed, return nil."
 (defun twittering-add-timeline-history (spec-string)
   (when (or (null twittering-timeline-history)
 	    (not (string= spec-string (car twittering-timeline-history))))
-    (twittering-add-to-history 'twittering-timeline-history spec-string))
+    (add-to-history 'twittering-timeline-history spec-string))
   (let ((spec (twittering-string-to-timeline-spec spec-string)))
     (when (and (twittering-timeline-spec-is-user-p spec)
 	       (or (null twittering-user-history)
 		   (not (string= spec-string (car twittering-user-history)))))
-      (twittering-add-to-history 'twittering-user-history (cadr spec)))))
+      (add-to-history 'twittering-user-history (cadr spec)))))
 
 (defun twittering-remove-timeline-spec-string-from-history (spec-string)
   (setq twittering-timeline-history
@@ -7878,7 +7877,7 @@ static char * yellow3_xpm[] = {
 				  twittering-error-icon-data-pair)))
       (unless (equal spec dummy-icon-properties)
 	(let ((history-delete-duplicates t))
-	  (twittering-add-to-history 'twittering-icon-storage-recent-icons
+	  (add-to-history 'twittering-icon-storage-recent-icons
 				     (list size image-url)
 				     twittering-icon-storage-limit))))))
 
@@ -9965,7 +9964,7 @@ If FORCE is non-nil, all active buffers are updated forcibly."
     (twittering-update-service-configuration)
     (let* ((buffer-list (twittering-get-active-buffer-list))
 	   (primary-spec-list
-	    (twittering-remove-duplicates
+	    (delete-dups
 	     (apply 'append
 		    (mapcar
 		     (lambda (buffer)
@@ -10350,7 +10349,7 @@ entry in `twittering-edit-skeleton-alist' are performed."
 		 twittering-edit-skeleton-alist))
 	(current (symbol-name (or twittering-edit-skeleton 'none))))
     (let ((selected
-	   (twittering-completing-read
+	   (completing-read
 	    (format "Skeleton (%s): " current)
 	    skeleton-keys nil t nil nil current)))
       (when selected
@@ -10922,7 +10921,7 @@ Pairs of a key symbol and an associated value are following:
 
 (defun twittering-get-usernames-from-timeline (&optional timeline-data)
   (let ((timeline-data (or timeline-data (twittering-current-timeline-data))))
-    (twittering-remove-duplicates
+    (delete-dups
      (mapcar
       (lambda (status)
 	(let* ((base-str (cdr (assq 'user-screen-name status)))
@@ -10937,7 +10936,7 @@ Pairs of a key symbol and an associated value are following:
 (defun twittering-read-username-with-completion (prompt init-user &optional history)
   (let ((collection (append twittering-user-history
 			    (twittering-get-usernames-from-timeline))))
-    (twittering-completing-read prompt collection nil nil init-user history)))
+    (completing-read prompt collection nil nil init-user history)))
 
 (defun twittering-read-list-name (username &optional list-index)
   (let* ((list-index (or list-index
@@ -10947,7 +10946,7 @@ Pairs of a key symbol and an associated value are following:
 	 (prompt (format "%s's list: " username))
 	 (listname
 	  (if list-index
-	      (twittering-completing-read prompt list-index nil t nil)
+	      (completing-read prompt list-index nil t nil)
 	    nil)))
     (if (string= "" listname)
 	nil
@@ -10961,7 +10960,7 @@ Pairs of a key symbol and an associated value are following:
 	 (prompt (format "%s's subscription: " username))
 	 (listname
 	  (if list-index
-	      (twittering-completing-read prompt list-index nil t nil)
+	      (completing-read prompt list-index nil t nil)
 	    nil)))
     (if (string= "" listname)
 	nil
@@ -10989,7 +10988,7 @@ Pairs of a key symbol and an associated value are following:
 		  (mapconcat (lambda (entry) (car entry))
 			     spec-with-username "\\|")
 		  "\\)\\'"))
-	 (spec-string (twittering-completing-read prompt dummy-hist
+	 (spec-string (completing-read prompt dummy-hist
 						  nil nil initial 'dummy-hist))
 	 (spec-string
 	  (cond
@@ -11067,7 +11066,7 @@ Pairs of a key symbol and an associated value are following:
 (defun twittering-set-current-hashtag (&optional tag)
   (interactive)
   (unless tag
-    (setq tag (twittering-completing-read "hashtag (blank to clear): #"
+    (setq tag (completing-read "hashtag (blank to clear): #"
 					  twittering-hashtag-history
 					  nil nil
 					  twittering-current-hashtag
@@ -11554,7 +11553,7 @@ determines whether to refresh feed, reply, or DM."
 		   (prompt (format "Who do you %s? (default:%s): "
 				   mes default))
 		   (candidates (list retweeted-username retweeting-username)))
-	      (twittering-completing-read prompt candidates nil t
+	      (completing-read prompt candidates nil t
 					  nil nil default)))
 	   (status
 	    (cdr (assq 'user-screen-name status)))
@@ -11619,7 +11618,7 @@ determines whether to refresh feed, reply, or DM."
 		   (prompt (format "Who do you %s? (default:%s): "
 				   mes default))
 		   (candidates (list retweeted-username retweeting-username)))
-	      (twittering-completing-read prompt candidates nil t
+	      (completing-read prompt candidates nil t
 					  nil nil default)))
 	   (status
 	    (cdr (assq 'user-screen-name status)))
@@ -11650,7 +11649,7 @@ determines whether to refresh feed, reply, or DM."
 		    (cdr (assq 'retweeted-user-screen-name status)))
 		   (prompt "Who do you block? ")
 		   (candidates (list retweeted-username retweeting-username)))
-	      (twittering-completing-read prompt candidates nil t)))
+	      (completing-read prompt candidates nil t)))
 	   (status
 	    (cdr (assq 'user-screen-name status)))
 	   (t
@@ -11678,7 +11677,7 @@ The user is also blocked."
 		    (cdr (assq 'retweeted-user-screen-name status)))
 		   (prompt "Who do you report as a spammer? ")
 		   (candidates (list retweeted-username retweeting-username)))
-	      (twittering-completing-read prompt candidates nil t)))
+	      (completing-read prompt candidates nil t)))
 	   (status
 	    (cdr (assq 'user-screen-name status)))
 	   (t
