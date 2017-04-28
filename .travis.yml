@@ -24,4 +24,4 @@ before_install:
   - make -f emacs-travis.mk install_emacs
 
 script:
-  - make check
+  - make

@@ -7,9 +7,12 @@ DISTRIB_FILES = twittering-mode.el \
 		INSTALL INSTALL.ja \
 		win-curl
 
-.PHONY: all check clean update-po release release-upload upload
+SRC := $(wildcard *.el)
+OUT := $(SRC:.el=.elc)
 
-all:
+.PHONY: all check clean compile update-po release release-upload upload
+
+all: clean compile check
 
 update-po:
 	$(MAKE) -C doc update-po
@@ -17,8 +20,13 @@ update-po:
 check:
 	./test/run-test.sh -y
 
-clean : 
+clean:
 	rm -f twittering-mode.elc README *.zip *.tar.gz
+
+%.elc: %.el
+	$(EMACS) --batch -Q --directory . -f batch-byte-compile $<
+
+compile: $(OUT)
 
 VERSION = $$(cat VERSION)
 DISTRIB_DIR = twittering-mode-$(VERSION)
@@ -60,4 +68,3 @@ upload:
 	 echo "put $(DISTRIB_DIR).tar.gz") > upload.bat
 	sftp -b upload.bat $${SF_USERNAME},twmode@web.sourceforge.net
 	rm -f upload.bat
-

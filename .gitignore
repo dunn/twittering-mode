@@ -5,3 +5,4 @@
 /twittering-mode-*.tar.gz
 /twittering-mode-*.zip
 flycheck_*.el
+*.elc
