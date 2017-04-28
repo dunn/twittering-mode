@@ -18,7 +18,10 @@ update-po:
 	$(MAKE) -C doc update-po
 
 check:
-	./test/run-test.sh -y
+	$(EMACS) -q --no-site-file --batch \
+	         --directory . \
+	         --load test/vendor/test.el \
+	         --load test/el-test-runner.el
 
 clean:
 	rm -f twittering-mode.elc README *.zip *.tar.gz
