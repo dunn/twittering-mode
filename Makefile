@@ -1,5 +1,6 @@
 
 EMACS ?= emacs
+EMACS_FLAGS ?= --batch -Q --directory .
 
 DISTRIB_FILES = twittering-mode.el \
 		README README.ja \
@@ -18,8 +19,7 @@ update-po:
 	$(MAKE) -C doc update-po
 
 check:
-	$(EMACS) -q --no-site-file --batch \
-	         --directory . \
+	$(EMACS) $(EMACS_FLAGS) \
 	         --load test/vendor/test.el \
 	         --load test/el-test-runner.el
 
@@ -27,7 +27,7 @@ clean:
 	rm -f twittering-mode.elc README *.zip *.tar.gz
 
 %.elc: %.el
-	$(EMACS) --batch -Q --directory . -f batch-byte-compile $<
+	$(EMACS) $(EMACS_FLAGS) -f batch-byte-compile $<
 
 compile: $(OUT)
 
