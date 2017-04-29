@@ -432,7 +432,7 @@
     (test-assert-string-equal
      "created at 2009/12/09 09:44:57"
      (let ((tz (current-time-zone)))
-       (set-time-zone-rule "JST-9")
+       (set-time-zone-rule "Asia/Tokyo")
        (prog1
 	   (format-status status "created at %C{%Y/%m/%d %H:%M:%S}")
 	 (set-time-zone-rule (cddr tz)))))
