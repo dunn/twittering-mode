@@ -416,7 +416,7 @@ Use `twittering-activate-buffer', `twittering-deactivate-buffer',
   :type 'boolean
   :group 'twittering-mode)
 
-(defcustom twittering-status-format "%RT{%FACE[bold]{RT}}%i %s,  %@:\n%FOLD[  ]{%T // from %f%L%r%R%QT{\n+----\n%FOLD[|]{%i %s,  %@:\n%FOLD[  ]{%T // from %f%L%r%R}}\n+----}}\n "
+(defcustom twittering-status-format "%RT{%FACE[bold]{RT}}%i %s,  %@:\n%FOLD[  ]{%T // from %f%L%r%R%QT{\n+----\n%FOLD[|]{%i %s,  %@:\n%FOLD[  ]{%T // from %f%L%r%R}}\n+----}}\n"
   "Format string for rendering statuses.
 Ex.: \"%i %s,  %@:\\n%FILL{  %T // from %f%L%r%R}\n \"
 
