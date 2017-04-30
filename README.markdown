@@ -32,8 +32,7 @@ Twittering-mode enables you to twit on Emacsen.
  Supported Emacsen
 -------------------
 
-- GNU Emacs 21 (some restrictions)
-- GNU Emacs 22, 23, 24
+- GNU Emacs 23+
 
  Prerequisites
 -------------------
@@ -44,13 +43,13 @@ Twittering-mode enables you to twit on Emacsen.
   - GNU Wget http://www.gnu.org/software/wget/
   - OpenSSL http://www.openssl.org/
   - GnuTLS http://www.gnu.org/software/gnutls/
+
 - For parsing JSON, json.el is required.
   It is distributed with Emacs 23.1 and later.
+
 - For keeping an OAuth authorized token in a local storage encrypted
   with master password, GnuPG ( http://www.gnupg.org/ ) is  required.
-  On Emacs 22 and earlier, either EasyPG ( http://epg.sourceforge.jp/ )
-  or alpaca.el( http://www.mew.org/~kazu/proj/cipher/ ) is also
-  required.
+
 - For displaying icons in formats that are not supported by Emacs and
   resizing icon images, ImageMagick ( http://www.imagemagick.org/ ) or
   its compatible alternative is required, e.g. GraphicsMagick
@@ -58,6 +57,7 @@ Twittering-mode enables you to twit on Emacsen.
   icon-mode converts retrieved icons into XPM in default. So,
   icon-mode without additional configuration requires, ImageMagick (or
   its alternative).
+
 - For keeping retrieved icons in a local storage, gzip
   ( http://www.gzip.org/ ) is required.
 
@@ -65,12 +65,13 @@ Twittering-mode enables you to twit on Emacsen.
 ------------------------
 
 0.  Put *twittering-mode.el* in a directory specified by the variable
-    `load-path`. Note that the directories *emacs21* and *url-emacs21*
-    must be placed at the same directory on Emacs 21. On Windows
-    without curl or wget, the directory *win-curl* must be placed
-    there. You can add a directory to the variable `load-path` by
-    `(add-to-list 'load-path "ADDITIONAL-DIRECTORY")`.
+    `load-path`.  On Windows without curl or wget, the directory
+    *win-curl* must be placed there. You can add a directory to the
+    variable `load-path` by `(add-to-list 'load-path
+    "ADDITIONAL-DIRECTORY")`.
+
 1.  Execute `M-x twit` to run twittering-mode.
+
 2.  Open OAuth authorization page with an external browser, click *Allow*,
     and enter the PIN code in the prompt of Emacs.
 
@@ -81,6 +82,7 @@ Twittering-mode enables you to twit on Emacsen.
     Once the authorized OAuth token is encrypted, you do not have to
     retrieve a PIN code with an external browser. The master password
     is only required to establish authorized connection to Twitter.
+
 3.  Your home timeline will appear. Basic key bindings are as
     follows.
     - `V`: Open or switch to another timeline by
@@ -93,6 +95,7 @@ Twittering-mode enables you to twit on Emacsen.
     - `C-uC-c RET`: Post an official/native retweet.
     - `d`: Send a direct message.
     - `C-cC-w`: Delete the pointed tweet.
+
 4.  Add some of the following major configurations to your init file
     if you like.
     - To display icons, add `(setq twittering-icon-mode t)`.
