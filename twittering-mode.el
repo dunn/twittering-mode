@@ -49,6 +49,7 @@
 (eval-when-compile (require 'cl)
 		   (require 'easymenu))
 
+(require 'cl-lib)
 (require 'twittering-curl)
 (require 'twittering-http)
 (require 'twittering-oauth)
@@ -337,7 +338,7 @@ Use `twittering-activate-buffer', `twittering-deactivate-buffer',
   :type 'boolean
   :group 'twittering-mode)
 
-(defcustom twittering-status-format "%RT{%FACE[bold]{RT}}%i %s,  %@:\n%FOLD[  ]{%T // from %f%L%r%R%QT{\n+----\n%FOLD[|]{%i %s,  %@:\n%FOLD[  ]{%T // from %f%L%r%R}}\n+----}}\n"
+(defcustom twittering-status-format "%RT{%FACE[bold]{RT}}%i %s,  %@:\n%FOLD[  ]{%T \n%m\nFrom %f%L%r%R%QT{\n+----\n%FOLD[|]{%i %s,  %@:\n%FOLD[  ]{%T // from %f%L%r%R}}\n+----}}\n"
   "Format string for rendering statuses.
 Ex.: \"%i %s,  %@:\\n%FILL{  %T // from %f%L%r%R}\n \"
 
@@ -346,6 +347,7 @@ Items:
  %S - name
  %i - profile_image
  %d - description
+ %m - media
  %l - location
  %L - \" [location]\"
  %r - \" sent to user\" (use on direct_messages{,_sent})
@@ -4186,9 +4188,9 @@ to JSON objects from ordinary timeline and search timeline."
 			urls)))
       (media . ,(mapcar (lambda (entry)
 			  ;; the API does not include the accessible descriptions
-			  '((media-url . media_url_https)
-			    (display-url . display_url)
-			    (expanded-url . expanded_url)))
+			  `((media-url . ,(cdr (assq 'media_url_https entry)))
+			    (display-url . ,(cdr (assq 'display_url entry)))
+			    (expanded-url . ,(cdr (assq 'expanded_url entry)))))
 			media))
       (retweet-count . ,(cdr (assq 'retweet_count json-object)))
       (favorite-count . ,(cdr (assq 'favorite_count json-object)))
@@ -5548,6 +5550,10 @@ following symbols;
        (unless (string= "" location)
 	 (concat " [" location "]"))))
     ("l" . (cdr (assq 'user-location ,status-sym)))
+    ("m" . (cl-reduce 'concat (mapcar
+			       (lambda (x)
+				 (twittering-make-image-string nil (cdr (assq 'media-url x))))
+			       (cdr (assq 'media ,status-sym)))))
     ("p" . (when (cdr (assq 'user-protected ,status-sym))
 	     "[x]"))
     ("r" .
