@@ -4837,14 +4837,16 @@ return nil."
 	  ;; failed to convert the image.
 	  nil)))))
 
-(defun twittering-create-image-pair (image-data)
+(defun twittering-create-image-pair (image-data &optional width height)
   "Return a pair of image type and image data.
-IMAGE-DATA is converted by `convert' if the image type of IMAGE-DATA is not
-available and `twittering-use-convert' is non-nil."
+IMAGE-DATA is converted by `convert' if the image type of
+IMAGE-DATA is not available or the WIDTH and HEIGHT is other than
+specified, and `twittering-use-convert' is non-nil."
   (let* ((image-type (and image-data (image-type-from-data image-data)))
 	 (image-pair `(,image-type . ,image-data))
-	 (converted-size
-	  `(,twittering-convert-fix-size . ,twittering-convert-fix-size)))
+	 (converted-size (if (and width height)
+			     `(,width . ,height)
+			   `(,twittering-convert-fix-size . ,twittering-convert-fix-size))))
     (cond
      ((null image-data)
       twittering-error-icon-data-pair)
@@ -4873,16 +4875,18 @@ available and `twittering-use-convert' is non-nil."
       (puthash size hash twittering-icon-prop-hash))
     (puthash image-url spec hash)))
 
-(defun twittering-register-image-data (image-url image-data &optional size)
+(defun twittering-register-image-data (image-url image-data &optional width height)
+  "Update the image spec for IMAGE-URL with IMAGE-DATA, including the WIDTH / HEIGHT if provided."
   (let ((image-pair (twittering-create-image-pair image-data))
 	(size (or size twittering-convert-fix-size)))
     (when image-pair
       (let ((spec (twittering-make-display-spec-for-icon image-pair)))
-	(twittering-register-image-spec image-url spec size)
+	(twittering-register-image-spec image-url spec width height)
 	spec))))
 
 (defun twittering-make-slice-spec (image-spec)
-  "Return slice property for reducing the image size by cropping it."
+  "Return slice property for reducing the size of the image \
+specified by IMAGE-SPEC, by cropping it."
   (let* ((size (image-size image-spec t))
 	 (width (car size))
 	 (height (cdr size))
@@ -4895,9 +4899,10 @@ available and `twittering-use-convert' is non-nil."
       `(slice 0 0 ,fixed-length ,fixed-length))))
 
 (defun twittering-make-display-spec-for-icon (image-pair)
-  "Return the specification for `display' text property, which
-limits the size of an icon image IMAGE-PAIR up to FIXED-LENGTH. If
-the type of the image is not supported, nil is returned.
+  "Return the specification for `display' text property, which \
+limits the size of an icon image IMAGE-PAIR up to
+FIXED-LENGTH.  If the type of the image is not supported, nil is
+returned.
 
 If the size of the image exceeds FIXED-LENGTH, the center of the
 image are displayed."
@@ -4916,10 +4921,12 @@ image are displayed."
 	`(display (,image-spec ,slice-spec))
       `(display ,image-spec))))
 
-(defun twittering-make-icon-string (beg end image-url)
+(defun twittering-make-image-string (str image-url &optional width height)
+  "Using the propertized STR as a base, build a propertized image \
+string from IMAGE-URL, converting it to WIDTH / HEIGHT if necessary."
   (let ((display-spec (twittering-get-display-spec-for-icon image-url))
 	(image-data (gethash image-url twittering-url-data-hash))
-	(properties (and beg (text-properties-at beg)))
+	(properties (when str (text-properties-at str)))
 	(icon-string (copy-sequence " ")))
     (when properties
       (add-text-properties 0 (length icon-string) properties icon-string))
@@ -4936,14 +4943,14 @@ image are displayed."
 	   (<= twittering-url-request-retry-limit image-data))
       ;; Try to retrieve the image no longer.
       (twittering-register-image-data image-url nil)
-      (twittering-make-icon-string beg end image-url))
+      (twittering-make-image-string str image-url width height))
      ((and image-data (not (integerp image-data)))
-      (twittering-register-image-data image-url image-data)
-      (twittering-make-icon-string beg end image-url))
+      (twittering-register-image-data image-url image-data width height)
+      (twittering-make-image-string str image-url))
      (t
       (put-text-property 0 (length icon-string)
 			 'need-to-be-updated
-			 `(twittering-make-icon-string ,image-url)
+			 `(twittering-make-image-string ,image-url)
 			 icon-string)
       (twittering-url-retrieve-async image-url 'twittering-register-image-data)
       icon-string))))
@@ -5552,7 +5559,7 @@ following symbols;
 			  (twittering-api-path "users/profile_image") user size)))
 	       (t
 		(cdr (assq 'user-profile-image-url ,status-sym))))))
-	 (twittering-make-icon-string nil nil url))))
+	 (twittering-make-image-string nil url))))
     ("j" . (cdr (assq 'user-id ,status-sym)))
     ("L" .
      (let ((location (or (cdr (assq 'user-location ,status-sym)) "")))
@@ -5561,7 +5568,7 @@ following symbols;
     ("l" . (cdr (assq 'user-location ,status-sym)))
     ("m" . (cl-reduce 'concat (mapcar
 			       (lambda (x)
-				 (twittering-make-image-string nil (cdr (assq 'media-url x))))
+				 (twittering-make-image-string nil (cdr (assq 'media-url x)) "200" "200"))
 			       (cdr (assq 'media ,status-sym)))))
     ("p" . (when (cdr (assq 'user-protected ,status-sym))
 	     "[x]"))
